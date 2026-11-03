@@ -30,6 +30,10 @@
   .repositories ul { 
     grid-template-columns: 1fr; 
   }
+
+  .repositories {
+    grid-template-columns: 1fr;
+  }
   
   .container .profile-data .info { 
     flex-direction: column; 

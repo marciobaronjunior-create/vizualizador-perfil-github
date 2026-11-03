@@ -1,36 +1,33 @@
-import { fetchGitHubUser, GitHubApiError } from './github-api.js';
-import {
-  clearProfile,
-  renderProfile,
-  showLoading,
-} from './profile-view.js';
+import { fetchGithubUser, fetchGithubUserRepos } from './githubApi.js';
+import { renderProfile } from './profileView.js';
 
 const inputSearch = document.getElementById('input-search');
 const btnSearch = document.getElementById('btn-search');
+const profileResults = document.querySelector('.profile-results');
 
-btnSearch.addEventListener('click', async () => {
-  const userName = inputSearch.value.trim();
-
-  if (!userName) {
-    alert('Por favor, digite um nome de usuário do GitHub.');
-    clearProfile();
-    return;
-  }
-
-  showLoading();
-
-  try {
-    const userData = await fetchGitHubUser(userName);
-    renderProfile(userData);
-  } catch (error) {
-    console.error('Erro ao buscar o perfil do usuário:', error);
-    clearProfile();
-
-    if (error instanceof GitHubApiError && error.status === 404) {
-      alert('Usuário não encontrado. Por favor, verifique o nome de usuário e tente novamente.');
-      return;
+async function getUserProfile() {
+    const userName = inputSearch.value;
+    if (!userName) {
+        alert('Por favor, digite um nome de usuário do GitHub.');
+        profileResults.innerHTML = "";
+        return;
     }
+    profileResults.innerHTML = `<p class="loading">Carregando...</p>`;
+    try {
+        const userData = await fetchGithubUser(userName);
+        const userRepos = await fetchGithubUserRepos(userName);
+        renderProfile(userData, userRepos, profileResults);
+    } catch (error) {
+        console.error('Erro ao buscar o perfil do usuário:', error);
+        alert('Usuário não encontrado. Por favor, verifique o nome de usuário e tente novamente.');
+        profileResults.innerHTML = "";
+    }
+}
 
-    alert('Ocorreu um erro ao buscar o perfil do usuário. Por favor, tente novamente mais tarde.');
-  }
+btnSearch.addEventListener('click', getUserProfile);
+
+inputSearch.addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
+        getUserProfile();
+    }
 });
